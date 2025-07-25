@@ -77,7 +77,7 @@ app = FastAPI(
     redoc_url=None
 )
 
-app.state.limiter = limiter
+app.limiter = limiter
 
 app.add_middleware(
     CORSMiddleware,

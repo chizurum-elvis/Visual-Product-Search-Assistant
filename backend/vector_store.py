@@ -6,7 +6,7 @@ from typing import List
 import pickle
 from pathlib import Path
 import torch
-from typing import Optional
+from typing import Optional, cast, SupportsBytes
 
 logger = logging.getLogger("VectorStore")
 
@@ -36,9 +36,9 @@ try:
                 file_texts.append(text)
 
         # Save cache
-        Path(EMBEDDING_CACHE).parent.mkdir(exist_ok=True)
+        Path(EMBEDDING_CACHE).parent.mkdir(exist_ok=True, parents=True)
         with open(EMBEDDING_CACHE, "wb") as f:
-            pickle.dump((file_embeddings, file_texts), f)
+            pickle.dump((file_embeddings, file_texts),f, protocol=pickle.HIGHEST_PROTOCOL)
         logger.info(f"Cached {len(file_texts)} embeddings")
 
 except Exception as e:

@@ -34,6 +34,7 @@ class TextEncoder:
         reraise=True
     )
     def generate_answer_with_gpt4(
+            self,
             question: str,
             context: str,
             model: str = DEFAULT_MODEL,
@@ -76,7 +77,7 @@ class TextEncoder:
 
             return response.choices[0].message.content.strip()
 
-        except openai.error.InvalidRequestError as e:
+        except openai.BadRequestError as e:
             logger.error(
                 "Invalid request to OpenAI",
                 extra={"error": str(e), "context_length": len(context)}

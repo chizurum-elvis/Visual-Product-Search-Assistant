@@ -1,2 +1,6 @@
 backend/.env
 ui/.gradio
+.DS_Store
+backend/__pycache__/
+backend/data/
+data/

@@ -181,5 +181,5 @@ if __name__ == "__main__":
         server_port=7860,
         share=True,
         show_error=True,
-        favicon_path="./favicon.ico"  # Add a favicon if available
+        # favicon_path="./favicon.ico"  # Add a favicon if available
     )
