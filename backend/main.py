@@ -83,8 +83,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -120,7 +120,6 @@ def validate_image(file_path: str) -> bool:
     try:
         with Image.open(file_path) as img:
             img.verify()
-            img.load()  # Force loading to catch decode errors
         return True
     except (IOError, SyntaxError) as e:
         logger.warning(f"Invalid image file: {str(e)}")
