@@ -6,7 +6,9 @@ from typing import List
 import pickle
 from pathlib import Path
 import torch
-from typing import Optional, cast, SupportsBytes
+from typing import Optional
+import faiss
+import numpy as np
 
 logger = logging.getLogger("VectorStore")
 
@@ -46,32 +48,28 @@ except Exception as e:
     raise
 
 
-def search_similar_docs(
-        query: str,
-        image_embedding: Optional[List[float]] = None,
-        top_k: int = 3
-) -> List[str]:
-    """Hybrid search combining text and image embeddings"""
+if not file_embeddings:
+    raise ValueError("No file embeddings found")
+
+embedding_dim = file_embeddings[0].shape[0]
+faiss_index = faiss.IndexFlatL2(embedding_dim)
+faiss_index.add(file_embeddings)
+
+def search_similar_docs(query:str, image_embedding:Optional[List[float]]=None, top_k:int=3) -> List[str]:
+    """Hybrid search combining text and image embeddings using FAISS"""
     try:
-        # Text embedding
-        query_emb = model.encode(query, convert_to_tensor=True)
+        query_embedding = model.encode(query)
+        query_embedding = np.array(query_embedding)
 
-        # Combine with image embedding if available
         if image_embedding is not None:
-            img_emb = torch.tensor(image_embedding).to(query_emb.device)
-            query_emb = (query_emb + img_emb) / 2  # Simple average
+            image_embedding = np.array(image_embedding)
+            query_embedding = (query_embedding + image_embedding) / 2
+        query_embedding = np.expand_dims(query_embedding.astype('float32'), axis=0)
 
-        # Perform search
-        hits = util.semantic_search(
-            query_emb,
-            torch.stack(file_embeddings),
-            top_k=top_k
-        )
-
-        results = [file_texts[i['corpus_id']] for i in hits[0]]
+        distances, indices = faiss_index.search(query_embedding, top_k)
+        results = [file_texts[i] for i in indices[0]]
         logger.debug(f"Retrieved {len(results)} documents for: {query[:50]}...")
         return results
-
     except Exception as e:
-        logger.error("Document search failed", exc_info=True)
+        logger.critical("Failed to retrieve results", exc_info=True)
         return []
